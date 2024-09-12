@@ -245,6 +245,7 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
     }
 
     public ArrayList<File> getFilesStartingWith(String prefix) {
+        Log.d("FileSearch", "prefix = " +prefix);
         //리스트 가져올때마다 비워주기
         fileArrayList.clear();
         // MUSIC 디렉토리 경로 가져오기
@@ -511,7 +512,7 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
                     currentBlinkingTextView.clearAnimation();
                 }
             }else {
-                mode_flag = true;
+                mode_flag = false;
                 btn_mode.setText("완료");
                 index_mp3 = 0;
                 mediaPlayer.release();
