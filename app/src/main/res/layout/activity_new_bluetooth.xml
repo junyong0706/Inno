@@ -93,6 +93,7 @@
                 android:textSize="39sp"
                 android:textStyle="bold"
                 android:textColor="#4B3D8C"
+                android:layout_centerVertical="true"
                 />
 
             <TextView
@@ -104,14 +105,17 @@
                 android:textSize="39sp"
                 android:textStyle="bold"
                 android:textColor="#fff"
+                android:layout_centerVertical="true"
                 android:background="@drawable/edit_rounded_corner_bg"
                 />
             <Button
                 android:id="@+id/btn_1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_toRightOf="@id/ed_1"
                 android:layout_centerVertical="true"
+                android:background="@drawable/stop_btn"
+                android:layout_marginStart="10dp"
                 />
 
         </RelativeLayout>
@@ -131,6 +135,7 @@
                 android:textSize="39sp"
                 android:textStyle="bold"
                 android:textColor="#4B3D8C"
+                android:layout_centerVertical="true"
                 />
 
             <TextView
@@ -143,13 +148,16 @@
                 android:textStyle="bold"
                 android:textColor="#fff"
                 android:background="@drawable/edit_rounded_corner_bg"
+                android:layout_centerVertical="true"
                 />
             <Button
                 android:id="@+id/btn_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_toRightOf="@id/ed_2"
                 android:layout_centerVertical="true"
+                android:background="@drawable/stop_btn"
+                android:layout_marginStart="10dp"
                 />
 
 
@@ -163,13 +171,16 @@
                 android:textStyle="bold"
                 android:textColor="#fff"
                 android:background="@drawable/edit_rounded_corner_bg"
+                android:layout_centerVertical="true"
                 />
             <Button
                 android:id="@+id/btn_3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_toRightOf="@id/ed_3"
                 android:layout_centerVertical="true"
+                android:background="@drawable/stop_btn"
+                android:layout_marginStart="10dp"
                 />
 
         </RelativeLayout>
@@ -189,6 +200,7 @@
                 android:textSize="39sp"
                 android:textStyle="bold"
                 android:textColor="#4B3D8C"
+                android:layout_centerVertical="true"
                 />
 
             <TextView
@@ -201,13 +213,16 @@
                 android:textStyle="bold"
                 android:textColor="#fff"
                 android:background="@drawable/edit_rounded_corner_bg"
+                android:layout_centerVertical="true"
                 />
             <Button
                 android:id="@+id/btn_4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_toRightOf="@id/ed_4"
                 android:layout_centerVertical="true"
+                android:background="@drawable/stop_btn"
+                android:layout_marginStart="10dp"
                 />
 
             <TextView
@@ -220,13 +235,17 @@
                 android:textStyle="bold"
                 android:textColor="#fff"
                 android:background="@drawable/edit_rounded_corner_bg"
+                android:layout_centerVertical="true"
                 />
             <Button
                 android:id="@+id/btn_5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_toRightOf="@id/ed_5"
                 android:layout_centerVertical="true"
+                android:background="@drawable/stop_btn"
+                android:layout_marginStart="10dp"
+
                 />
 
         </RelativeLayout>
@@ -245,6 +264,7 @@
                 android:textSize="39sp"
                 android:textStyle="bold"
                 android:textColor="#4B3D8C"
+                android:layout_centerVertical="true"
                 />
 
             <TextView
@@ -257,13 +277,16 @@
                 android:textStyle="bold"
                 android:textColor="#fff"
                 android:background="@drawable/edit_rounded_corner_bg"
+                android:layout_centerVertical="true"
                 />
             <Button
                 android:id="@+id/btn_6"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_toRightOf="@id/ed_6"
                 android:layout_centerVertical="true"
+                android:background="@drawable/stop_btn"
+                android:layout_marginStart="10dp"
                 />
 
         </RelativeLayout>
@@ -297,9 +320,9 @@
             >
             <Button
                 android:id="@+id/btn_vol_down"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:background="@drawable/minus_circle"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/vol_down"
                 android:layout_marginRight="20dp"
                 />
             <TextView
@@ -314,11 +337,41 @@
                 />
             <Button
                 android:id="@+id/btn_vol_up"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:background="@drawable/plus_circle"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/vol_up"
                 />
         </LinearLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="250dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="570dp"
+        android:layout_marginStart="420dp"
+        >
+
+        <TextView
+            android:id="@+id/txt_speed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.0x"
+            android:textColor="#fff"
+            android:textSize="25sp"
+            android:layout_above="@+id/seekbar_speed"
+            android:layout_centerHorizontal="true"
+            />
+        <SeekBar
+            android:id="@+id/seekbar_speed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:min="5"
+            android:max="20"
+            android:maxHeight="10dp"
+            android:layout_alignParentBottom="true"
+            android:progressDrawable="@drawable/seekbar_progress"
+            />
+
     </RelativeLayout>
 
 
@@ -694,14 +747,14 @@
             <Button
                 android:id="@+id/btn_mode"
                 android:layout_width="0dp"
-                android:layout_weight="1.2"
+                android:layout_weight="1.5"
                 android:layout_height="70dp"
                 android:gravity="center"
                 android:text="완료"
                 android:textSize="36sp"
                 android:textStyle="bold"
-                android:textColor="#fff"
-                android:background="@drawable/edit_rounded_corner_bg"
+                android:textColor="#124536"
+                android:background="@drawable/complete"
                 android:layout_marginRight="9dp"
                 />
 
@@ -781,14 +834,13 @@
             <Button
                 android:id="@+id/btn_delete"
                 android:layout_width="0dp"
-                android:layout_weight="1.2"
+                android:layout_weight="1.5"
                 android:layout_height="70dp"
                 android:gravity="center"
-                android:text="←"
                 android:textSize="36sp"
                 android:textStyle="bold"
                 android:textColor="#fff"
-                android:background="@drawable/edit_rounded_corner_bg"
+                android:background="@drawable/bspace"
                 android:layout_marginRight="9dp"
                 />
 

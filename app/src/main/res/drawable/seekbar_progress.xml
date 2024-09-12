@@ -1,0 +1,18 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 배경 (프로그레스가 채워지지 않은 부분) -->
+    <item android:id="@android:id/background">
+        <shape>
+            <solid android:color="#000000" /> <!-- 프로그레스가 채워지지 않은 부분의 색상 (검은색) -->
+        </shape>
+    </item>
+
+    <!-- 채워진 프로그레스 부분 -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape>
+                <solid android:color="#FFFFFF" /> <!-- 프로그레스가 채워진 부분의 색상 (흰색) -->
+            </shape>
+        </clip>
+    </item>
+</layer-list>

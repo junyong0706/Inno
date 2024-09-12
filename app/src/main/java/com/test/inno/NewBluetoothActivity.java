@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,12 +15,14 @@ import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
@@ -56,10 +60,12 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
             btn_num_1,btn_num_2,btn_num_3,btn_num_4,btn_num_5,btn_num_6,btn_num_7,btn_num_8,btn_num_9,btn_num_0,
             btn_delete;
 
-    private boolean playflag = false;
+    private boolean play_flag = false;
     private boolean mode_flag = false;
     private int index_mp3 = 0;
     private MediaPlayer mediaPlayer;
+    private AudioManager audioManager;
+
 
     private ArrayList<File> fileArrayList;
 
@@ -77,6 +83,7 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
     private void init(){
 
         fileArrayList = new ArrayList<>();
+        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
 
         ed_1 = findViewById(R.id.ed_1);
         ed_2 = findViewById(R.id.ed_2);
@@ -109,7 +116,12 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         btn_mode = findViewById(R.id.btn_mode);
         btn_vol_up = findViewById(R.id.btn_vol_up);
         btn_vol_down = findViewById(R.id.btn_vol_down);
-
+        btn_1 = findViewById(R.id.btn_1);
+        btn_2 = findViewById(R.id.btn_2);
+        btn_3 = findViewById(R.id.btn_3);
+        btn_4 = findViewById(R.id.btn_4);
+        btn_5 = findViewById(R.id.btn_5);
+        btn_6 = findViewById(R.id.btn_6);
 
         ed_1.setOnClickListener(this);
         ed_2.setOnClickListener(this);
@@ -143,10 +155,73 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         btn_mode.setOnClickListener(this);
         btn_vol_up.setOnClickListener(this);
         btn_vol_down.setOnClickListener(this);
+        btn_1.setOnClickListener(this);
+        btn_2.setOnClickListener(this);
+        btn_3.setOnClickListener(this);
+        btn_4.setOnClickListener(this);
+        btn_5.setOnClickListener(this);
+        btn_6.setOnClickListener(this);
+        ((SeekBar)findViewById(R.id.seekbar_speed)).setProgress(10);
+        ((SeekBar)findViewById(R.id.seekbar_speed)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Log.d("SEEK"," pro = " + progress);
+                // 배속 설정: progress 값을 10으로 나눠서 0.1 ~ 2.0 배속 설정
+                float speed = progress / 10f;
+
+                // MediaPlayer의 배속 설정
+                if (play_flag){
+                    if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                        PlaybackParams params = mediaPlayer.getPlaybackParams();
+                        params.setSpeed(speed);  // 배속 적용
+                        mediaPlayer.setPlaybackParams(params);
+                        ((TextView)findViewById(R.id.txt_speed)).setText(speed+"x");
+                    }
+                }else {
+                    Toast.makeText(NewBluetoothActivity.this,"재생중이 아닙니다.",Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
         
     }
+    private void adjustVolume(boolean increase) {
+        int maxVolume = 100;  // 최대 볼륨 값
+        int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC); // 현재 볼륨
+        int volumeStep = 1;   // 볼륨을 한 번에 5만큼 증가 또는 감소
+
+        if (increase) {
+            if (currentVolume < maxVolume) {
+                currentVolume += volumeStep;  // 볼륨 증가
+                if (currentVolume > maxVolume) {
+                    currentVolume = maxVolume;  // 최대 볼륨보다 높아지지 않도록 설정
+                }
+            }
+        } else {
+            if (currentVolume > 0) {
+                currentVolume -= volumeStep;  // 볼륨 감소
+                if (currentVolume < 0) {
+                    currentVolume = 0;  // 최소 볼륨보다 낮아지지 않도록 설정
+                }
+            }
+        }
+        ((TextView)findViewById(R.id.txt_vol)).setText(currentVolume+"");
+        // 볼륨 설정
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0);
+
+    }
     public void playMp3Files(List<File> mp3Files) {
-        Log.d("Mp3Player", "시작");
+        Log.d("Mp3Player", "시작 = " + index_mp3);
         if (mp3Files == null || mp3Files.isEmpty()) {
             Log.d("Mp3Player", "MP3 파일이 없습니다.");
             return;
@@ -167,22 +242,27 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
                 mediaPlayer.setDataSource(mp3File.getPath());
                 mediaPlayer.prepare(); // 파일 준비
                 mediaPlayer.start();   // 재생 시작
+                Log.d("Mp3Player", "play_flag true 뱌ㅕㄴ걍 " );
+                play_flag = true;
 
                 Log.d("Mp3Player", "재생 중인 파일: " + mp3File.getName());
 
                 // 재생이 끝났을 때의 콜백 설정
                 mediaPlayer.setOnCompletionListener(mp -> {
-                    Log.d("Mp3Player", "재생이 완료되었습니다.");
                     // 재생이 완료되면 MediaPlayer 해제
-                    if (index_mp3 == 0){
+                    if (index_mp3 < 1){
                         index_mp3++;
                     }
                     // 다음 파일이 있으면 재생, 없으면 완료 메시지
-                    if (index_mp3 < mp3Files.size()) {
-                        playMp3Files(mp3Files); // 다음 파일 재생
-                    } else {
+                    if (mp3Files.size() > 1 && play_flag){
+                        playMp3Files(mp3Files); // 다음 파일 재생 및 수정버튼 눌ㄹ렀을때 종료
+                    }else {
+                        index_mp3 = 0;
+                    }
+                    if (mp3Files.size() == 1){
                         Log.d("Mp3Player", "모든 MP3 파일을 재생했습니다.");
                         mediaPlayer.release(); // 모든 재생이 완료되면 MediaPlayer 해제
+                        play_flag = false;
                         mediaPlayer = null;
                     }
                 });
@@ -247,30 +327,30 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
     public ArrayList<File> getFilesStartingWith(String prefix) {
         Log.d("FileSearch", "prefix = " +prefix);
         //리스트 가져올때마다 비워주기
-        fileArrayList.clear();
         // MUSIC 디렉토리 경로 가져오기
         File musicFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
 
         // 결과를 담을 리스트
         ArrayList<File> matchingFiles = new ArrayList<>();
+        fileArrayList.clear();
+        if (!TextUtils.isEmpty(prefix)){
+            // 음악 폴더가 존재하고, 폴더일 경우에만 진행
+            if (musicFolder.exists() && musicFolder.isDirectory()) {
+                File[] files = musicFolder.listFiles();
 
-        // 음악 폴더가 존재하고, 폴더일 경우에만 진행
-        if (musicFolder.exists() && musicFolder.isDirectory()) {
-            File[] files = musicFolder.listFiles();
-
-            if (files != null) {
-                for (File file : files) {
-                    // 파일 이름이 prefix로 시작하는지 확인
-                    if (file.isFile() && file.getName().startsWith(prefix)) {
-                        Log.d("FileSearch", "파일명 = " + file.getName());
-                        matchingFiles.add(file);
+                if (files != null) {
+                    for (File file : files) {
+                        // 파일 이름이 prefix로 시작하는지 확인
+                        if (file.isFile() && file.getName().startsWith(prefix)) {
+                            Log.d("FileSearch", "파일명 = " + file.getName());
+                            matchingFiles.add(file);
+                        }
                     }
                 }
+            } else {
+                Log.d("FileSearch", "MUSIC 폴더를 찾을 수 없습니다.");
             }
-        } else {
-            Log.d("FileSearch", "MUSIC 폴더를 찾을 수 없습니다.");
         }
-
         return matchingFiles;
     }
     private void copyFilesFromUsb() {
@@ -367,8 +447,9 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         Log.d("포커스","타입 - " + v.getClass());
         if (v.getClass().getName().equals("androidx.appcompat.widget.AppCompatTextView")){
             Log.d("포커스","타입 - 텍스트뷰");
-            v.requestFocus();
-            handleTextViewClick((TextView) v);
+            if (!play_flag){
+                handleTextViewClick((TextView) v);
+            }
         }
         //클릭한 텍스트뷰에 애니메이션넣기
         int id = v.getId();
@@ -376,47 +457,77 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
             // txtMode 클릭 시 동작
         } else if (id == R.id.ed_1) {
             // ed1 클릭 시 동작
+            if (!play_flag){
+                String num = ed_1.getText().toString();
+                fileArrayList = getFilesStartingWith(num);
+                playMp3Files(fileArrayList);
+            }
         } else if (id == R.id.ed_2) {
             // ed2 클릭 시 동작
+            if (!play_flag){
+                String num = ed_2.getText().toString();
+                fileArrayList = getFilesStartingWith(num);
+                playMp3Files(fileArrayList);
+            }
         } else if (id == R.id.ed_3) {
             // ed3 클릭 시 동작
+            if (!play_flag){
+                String num = ed_3.getText().toString();
+                fileArrayList = getFilesStartingWith(num);
+                playMp3Files(fileArrayList);
+            }
         } else if (id == R.id.ed_4) {
             // ed4 클릭 시 동작
+            if (!play_flag){
+                String num = ed_4.getText().toString();
+                fileArrayList = getFilesStartingWith(num);
+                playMp3Files(fileArrayList);
+            }
         } else if (id == R.id.ed_5) {
             // ed5 클릭 시 동작
+            if (!play_flag){
+                String num = ed_5.getText().toString();
+                fileArrayList = getFilesStartingWith(num);
+                playMp3Files(fileArrayList);
+            }
         } else if (id == R.id.ed_6) {
             // ed6 클릭 시 동작
+            if (!play_flag){
+                String num = ed_6.getText().toString();
+                fileArrayList = getFilesStartingWith(num);
+                playMp3Files(fileArrayList);
+            }
         } else if (id == R.id.ed_7) {
             // ed7 클릭 시 동작
-            if (mode_flag){
+            if (!play_flag){
                 String num = ed_7.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_8) {
             // ed8 클릭 시 동작
-            if (mode_flag){
+            if (!play_flag){
                 String num = ed_8.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_9) {
             // ed9 클릭 시 동작
-            if (mode_flag){
+            if (!play_flag){
                 String num = ed_9.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_10) {
             // ed10 클릭 시 동작
-            if (mode_flag){
+            if (!play_flag){
                 String num = ed_10.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_11) {
             // ed11 클릭 시 동작
-            if (mode_flag){
+            if (!play_flag){
                 String num = ed_11.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
@@ -424,29 +535,39 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
 
         } else if (id == R.id.ed_12) {
             // ed12 클릭 시 동작
-            if (mode_flag){
+            if (!play_flag){
                 String num = ed_12.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_13) {
             // ed13 클릭 시 동작
-            if (mode_flag){
+            if (!play_flag){
                 String num = ed_13.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_14) {
             // ed14 클릭 시 동작
-            String num = ed_14.getText().toString();
-            fileArrayList = getFilesStartingWith(num);
-            playMp3Files(fileArrayList);
+            if (!play_flag){
+                String num = ed_14.getText().toString();
+                fileArrayList = getFilesStartingWith(num);
+                playMp3Files(fileArrayList);
+            }
         } else if (id == R.id.ed_15) {
             // ed15 클릭 시 동작
-            String num = ed_15.getText().toString();
+            if (!play_flag){
+                String num = ed_15.getText().toString();
+                fileArrayList = getFilesStartingWith(num);
+                playMp3Files(fileArrayList);
+            }
         } else if (id == R.id.ed_16) {
             // ed16 클릭 시 동작
-            String num = ed_16.getText().toString();
+            if (!play_flag){
+                String num = ed_16.getText().toString();
+                fileArrayList = getFilesStartingWith(num);
+                playMp3Files(fileArrayList);
+            }
         } else if (id == R.id.btn_num_0) {
             // btn_num_0 클릭 시 동작
             if (currentBlinkingTextView != null){
@@ -515,45 +636,24 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
                 mode_flag = false;
                 btn_mode.setText("완료");
                 index_mp3 = 0;
-                mediaPlayer.release();
-                mediaPlayer = null;
             }
         } else if (id == R.id.btn_1){
-            if (mode_flag){
-                String num = ed_1.getText().toString();
-                fileArrayList = getFilesStartingWith(num);
-                playMp3Files(fileArrayList);
-            }
+            Log.d("Mp3Player", "play_flag false 뱌ㅕㄴ걍 " );
+            play_flag = false;
         }else if (id == R.id.btn_2){
-            if (mode_flag){
-                String num = ed_2.getText().toString();
-                fileArrayList = getFilesStartingWith(num);
-                playMp3Files(fileArrayList);
-            }
+            play_flag = false;
         }else if (id == R.id.btn_3){
-            if (mode_flag){
-                String num = ed_3.getText().toString();
-                fileArrayList = getFilesStartingWith(num);
-                playMp3Files(fileArrayList);
-            }
+            play_flag = false;
         }else if (id == R.id.btn_4){
-            if (mode_flag){
-                String num = ed_4.getText().toString();
-                fileArrayList = getFilesStartingWith(num);
-                playMp3Files(fileArrayList);
-            }
+            play_flag = false;
         }else if (id == R.id.btn_5){
-            if (mode_flag){
-                String num = ed_5.getText().toString();
-                fileArrayList = getFilesStartingWith(num);
-                playMp3Files(fileArrayList);
-            }
+            play_flag = false;
         }else if (id == R.id.btn_6){
-            if (mode_flag){
-                String num = ed_6.getText().toString();
-                fileArrayList = getFilesStartingWith(num);
-                playMp3Files(fileArrayList);
-            }
+            play_flag = false;
+        }else if (id == R.id.btn_vol_up){
+            adjustVolume(true);
+        }else if (id == R.id.btn_vol_down){
+            adjustVolume(false);
         }
 
     }
