@@ -44,7 +44,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.nio.channels.FileChannel;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,17 +56,23 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
     private TextView currentBlinkingTextView = null;
     private AlphaAnimation blinkAnimation;
     private TextView txtMode, ed_1, ed_2, ed_3, ed_4, ed_5, ed_6, ed_7, ed_8, ed_9, ed_10,
-            ed_11, ed_12, ed_13, ed_14, ed_15, ed_16;
+            ed_11, ed_12, ed_13, ed_14, ed_15, ed_16,txt_speed;
 
-    private Button btn_mode,btn_vol_up,btn_vol_down,btn_1,btn_2,btn_3,btn_4,btn_5,btn_6,
+    private Button btn_mode,btn_speed_down,btn_speed_up,btn_vol_up,btn_vol_down,btn_1,btn_2,btn_3,btn_4,btn_5,btn_6,
             btn_num_1,btn_num_2,btn_num_3,btn_num_4,btn_num_5,btn_num_6,btn_num_7,btn_num_8,btn_num_9,btn_num_0,
             btn_delete;
+
+    private BigDecimal speed = new BigDecimal("1.0");
+    private BigDecimal decimal_plus = new BigDecimal("0.1");
+    private BigDecimal decimal_minus = new BigDecimal("-0.1");
 
     private boolean play_flag = false;
     private boolean mode_flag = false;
     private int index_mp3 = 0;
     private MediaPlayer mediaPlayer;
     private AudioManager audioManager;
+
+    PlaybackParams params;
 
 
     private ArrayList<File> fileArrayList;
@@ -81,7 +89,8 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         init();
     }
     private void init(){
-
+        
+        mediaPlayer = new MediaPlayer();
         fileArrayList = new ArrayList<>();
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
 
@@ -101,6 +110,7 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         ed_14 = findViewById(R.id.ed_14);
         ed_15 = findViewById(R.id.ed_15);
         ed_16 = findViewById(R.id.ed_16);
+        txt_speed = findViewById(R.id.txt_speed);
 
         btn_num_0 = findViewById(R.id.btn_num_0);
         btn_num_1 = findViewById(R.id.btn_num_1);
@@ -116,6 +126,8 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         btn_mode = findViewById(R.id.btn_mode);
         btn_vol_up = findViewById(R.id.btn_vol_up);
         btn_vol_down = findViewById(R.id.btn_vol_down);
+        btn_speed_up = findViewById(R.id.btn_speed_up);
+        btn_speed_down = findViewById(R.id.btn_speed_down);
         btn_1 = findViewById(R.id.btn_1);
         btn_2 = findViewById(R.id.btn_2);
         btn_3 = findViewById(R.id.btn_3);
@@ -155,44 +167,16 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         btn_mode.setOnClickListener(this);
         btn_vol_up.setOnClickListener(this);
         btn_vol_down.setOnClickListener(this);
+        btn_speed_down.setOnClickListener(this);
+        btn_speed_up.setOnClickListener(this);
         btn_1.setOnClickListener(this);
         btn_2.setOnClickListener(this);
         btn_3.setOnClickListener(this);
         btn_4.setOnClickListener(this);
         btn_5.setOnClickListener(this);
         btn_6.setOnClickListener(this);
-        ((SeekBar)findViewById(R.id.seekbar_speed)).setProgress(10);
-        ((SeekBar)findViewById(R.id.seekbar_speed)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Log.d("SEEK"," pro = " + progress);
-                // 배속 설정: progress 값을 10으로 나눠서 0.1 ~ 2.0 배속 설정
-                float speed = progress / 10f;
 
-                // MediaPlayer의 배속 설정
-                if (play_flag){
-                    if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                        PlaybackParams params = mediaPlayer.getPlaybackParams();
-                        params.setSpeed(speed);  // 배속 적용
-                        mediaPlayer.setPlaybackParams(params);
-                        ((TextView)findViewById(R.id.txt_speed)).setText(speed+"x");
-                    }
-                }else {
-                    Toast.makeText(NewBluetoothActivity.this,"재생중이 아닙니다.",Toast.LENGTH_SHORT).show();
-                }
-            }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
         
     }
     private void adjustVolume(boolean increase) {
@@ -261,9 +245,15 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
                     }
                     if (mp3Files.size() == 1){
                         Log.d("Mp3Player", "모든 MP3 파일을 재생했습니다.");
-                        mediaPlayer.release(); // 모든 재생이 완료되면 MediaPlayer 해제
+                        mediaPlayer.stop(); // 모든 재생이 완료되면 MediaPlayer 해제
                         play_flag = false;
-                        mediaPlayer = null;
+                    }
+                });
+                mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                    @Override
+                    public boolean onError(MediaPlayer mp, int what, int extra) {
+                        Log.d("ERROR","ERROR");
+                        return false;
                     }
                 });
 
@@ -442,12 +432,13 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onClick(View v) {
         Log.d("포커스","타입 - " + v.getClass());
         if (v.getClass().getName().equals("androidx.appcompat.widget.AppCompatTextView")){
             Log.d("포커스","타입 - 텍스트뷰");
-            if (!play_flag){
+            if (!mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 handleTextViewClick((TextView) v);
             }
         }
@@ -457,77 +448,77 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
             // txtMode 클릭 시 동작
         } else if (id == R.id.ed_1) {
             // ed1 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_1.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_2) {
             // ed2 클릭 시 동작
-            if (!play_flag){
+            if (!play_flag  && !mediaPlayer.isPlaying()){
                 String num = ed_2.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_3) {
             // ed3 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_3.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_4) {
             // ed4 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_4.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_5) {
             // ed5 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_5.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_6) {
             // ed6 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_6.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_7) {
             // ed7 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_7.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_8) {
             // ed8 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_8.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_9) {
             // ed9 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_9.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_10) {
             // ed10 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_10.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_11) {
             // ed11 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_11.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
@@ -535,94 +526,116 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
 
         } else if (id == R.id.ed_12) {
             // ed12 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_12.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_13) {
             // ed13 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_13.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_14) {
             // ed14 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_14.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_15) {
             // ed15 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_15.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.ed_16) {
             // ed16 클릭 시 동작
-            if (!play_flag){
+            if (mode_flag && !play_flag && !mediaPlayer.isPlaying()){
                 String num = ed_16.getText().toString();
                 fileArrayList = getFilesStartingWith(num);
                 playMp3Files(fileArrayList);
             }
         } else if (id == R.id.btn_num_0) {
             // btn_num_0 클릭 시 동작
-            if (currentBlinkingTextView != null){
-                currentBlinkingTextView.append("0");
+            if (!mode_flag){
+                if (currentBlinkingTextView != null){
+                    currentBlinkingTextView.append("0");
+                }
             }
         } else if (id == R.id.btn_num_1) {
             // btn_num_1 클릭 시 동작
-            if (currentBlinkingTextView != null){
-                currentBlinkingTextView.append("1");
+            if (!mode_flag){
+                if (currentBlinkingTextView != null){
+                    currentBlinkingTextView.append("1");
+                }
             }
         } else if (id == R.id.btn_num_2) {
             // btn_num_2 클릭 시 동작
-            if (currentBlinkingTextView != null){
-                currentBlinkingTextView.append("2");
+            if (!mode_flag){
+                if (currentBlinkingTextView != null){
+                    currentBlinkingTextView.append("2");
+                }
             }
         } else if (id == R.id.btn_num_3) {
             // btn_num_3 클릭 시 동작
-            if (currentBlinkingTextView != null){
-                currentBlinkingTextView.append("3");
+            if (!mode_flag){
+                if (currentBlinkingTextView != null){
+                    currentBlinkingTextView.append("3");
+                }
             }
         } else if (id == R.id.btn_num_4) {
             // btn_num_4 클릭 시 동작
-            if (currentBlinkingTextView != null){
-                currentBlinkingTextView.append("4");
+            if (!mode_flag){
+                if (currentBlinkingTextView != null){
+                    currentBlinkingTextView.append("4");
+                }
             }
         } else if (id == R.id.btn_num_5) {
             // btn_num_5 클릭 시 동작
-            if (currentBlinkingTextView != null){
-                currentBlinkingTextView.append("5");
+            if (!mode_flag){
+                if (currentBlinkingTextView != null){
+                    currentBlinkingTextView.append("5");
+                }
             }
         } else if (id == R.id.btn_num_6) {
             // btn_num_6 클릭 시 동작
-            if (currentBlinkingTextView != null){
-                currentBlinkingTextView.append("6");
+            if (!mode_flag){
+                if (currentBlinkingTextView != null){
+                    currentBlinkingTextView.append("6");
+                }
             }
         } else if (id == R.id.btn_num_7) {
             // btn_num_7 클릭 시 동작
-            if (currentBlinkingTextView != null){
-                currentBlinkingTextView.append("7");
+            if (!mode_flag){
+                if (currentBlinkingTextView != null){
+                    currentBlinkingTextView.append("7");
+                }
             }
         } else if (id == R.id.btn_num_8) {
             // btn_num_8 클릭 시 동작
-            if (currentBlinkingTextView != null){
-                currentBlinkingTextView.append("8");
+            if (!mode_flag){
+                if (currentBlinkingTextView != null){
+                    currentBlinkingTextView.append("8");
+                }
             }
         } else if (id == R.id.btn_num_9) {
             // btn_num_9 클릭 시 동작
-            if (currentBlinkingTextView != null){
-                currentBlinkingTextView.append("9");
+            if (!mode_flag){
+                if (currentBlinkingTextView != null){
+                    currentBlinkingTextView.append("9");
+                }
             }
         } else if (id == R.id.btn_delete) {
             // btn_delete 클릭 시 동작
-            String currentText = currentBlinkingTextView.getText().toString();
-            if (currentText.length() > 0) {
-                currentBlinkingTextView.setText(currentText.substring(0, currentText.length() - 1));
+            if (!mode_flag && currentBlinkingTextView != null){
+                String currentText = currentBlinkingTextView.getText().toString();
+                if (currentText.length() > 0) {
+                    currentBlinkingTextView.setText(currentText.substring(0, currentText.length() - 1));
+                }
             }
         } else if (id == R.id.btn_mode) {
             // btn_mode 클릭 시 동작
@@ -635,25 +648,67 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
             }else {
                 mode_flag = false;
                 btn_mode.setText("완료");
+                if (currentBlinkingTextView != null) {
+                    currentBlinkingTextView = null;
+                }
                 index_mp3 = 0;
             }
         } else if (id == R.id.btn_1){
-            Log.d("Mp3Player", "play_flag false 뱌ㅕㄴ걍 " );
-            play_flag = false;
+            if (mode_flag){
+                play_flag = false;
+            }
         }else if (id == R.id.btn_2){
-            play_flag = false;
+            if (mode_flag){
+                play_flag = false;
+            }
         }else if (id == R.id.btn_3){
-            play_flag = false;
+            if (mode_flag){
+                play_flag = false;
+            }
         }else if (id == R.id.btn_4){
-            play_flag = false;
+            if (mode_flag){
+                play_flag = false;
+            }
         }else if (id == R.id.btn_5){
-            play_flag = false;
+            if (mode_flag){
+                play_flag = false;
+            }
         }else if (id == R.id.btn_6){
-            play_flag = false;
+            if (mode_flag){
+                play_flag = false;
+            }
         }else if (id == R.id.btn_vol_up){
             adjustVolume(true);
         }else if (id == R.id.btn_vol_down){
             adjustVolume(false);
+        }else if (id == R.id.btn_speed_up){
+            if (mediaPlayer != null) {
+
+                if (txt_speed.getText().toString().equals("x2.0")){
+                    return;
+                }
+                speed = speed.add(decimal_plus);
+                txt_speed.setText("x"+speed);
+                if (mediaPlayer.isPlaying()){
+                    params = mediaPlayer.getPlaybackParams();
+                    params.setSpeed(speed.floatValue());  // 배속 적용
+                    mediaPlayer.setPlaybackParams(params);
+                }
+            }
+        }else if (id == R.id.btn_speed_down){
+            if (mediaPlayer != null) {
+
+                if (txt_speed.getText().toString().equals("x0.5")){
+                    return;
+                }
+                speed = speed.add(decimal_minus);
+                txt_speed.setText("x"+speed);
+                if (mediaPlayer.isPlaying()){
+                    params = mediaPlayer.getPlaybackParams();
+                    params.setSpeed(speed.floatValue());  // 배속 적용
+                    mediaPlayer.setPlaybackParams(params);
+                }
+            }
         }
 
     }
