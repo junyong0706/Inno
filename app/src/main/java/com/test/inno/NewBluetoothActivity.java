@@ -204,6 +204,7 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0);
 
     }
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public void playMp3Files(List<File> mp3Files) {
         Log.d("Mp3Player", "시작 = " + index_mp3);
         if (mp3Files == null || mp3Files.isEmpty()) {
@@ -230,7 +231,10 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
                 play_flag = true;
 
                 Log.d("Mp3Player", "재생 중인 파일: " + mp3File.getName());
-
+                // 기존에 적용된 배속 적용
+                params = mediaPlayer.getPlaybackParams();
+                params.setSpeed(speed.floatValue());
+                mediaPlayer.setPlaybackParams(params);
                 // 재생이 끝났을 때의 콜백 설정
                 mediaPlayer.setOnCompletionListener(mp -> {
                     // 재생이 완료되면 MediaPlayer 해제
@@ -241,11 +245,16 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
                     if (mp3Files.size() > 1 && play_flag){
                         playMp3Files(mp3Files); // 다음 파일 재생 및 수정버튼 눌ㄹ렀을때 종료
                     }else {
+                        //종료 될때 1.0으로 초기화
+                        speed = new BigDecimal("1.0");
+                        txt_speed.setText("x" + speed);
                         index_mp3 = 0;
                     }
                     if (mp3Files.size() == 1){
                         Log.d("Mp3Player", "모든 MP3 파일을 재생했습니다.");
                         mediaPlayer.stop(); // 모든 재생이 완료되면 MediaPlayer 해제
+                        speed = new BigDecimal("1.0");
+                        txt_speed.setText("x" + speed);
                         play_flag = false;
                     }
                 });
@@ -318,7 +327,7 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         Log.d("FileSearch", "prefix = " +prefix);
         //리스트 가져올때마다 비워주기
         // MUSIC 디렉토리 경로 가져오기
-        File musicFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+        File musicFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC + "/CCM");
 
         // 결과를 담을 리스트
         ArrayList<File> matchingFiles = new ArrayList<>();
@@ -350,10 +359,29 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
 
         // 외부 저장소의 MUSIC 디렉토리 경로
         String musicFolderPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getPath();
-        File musicFolder = new File(musicFolderPath);
+        File musicFolder = new File(musicFolderPath + "/CCM");
+        if (!musicFolder.exists()){
+            musicFolder.mkdir();
 
+        }
         // USB의 CCM 폴더가 존재하고, 폴더일 경우에만 복사 진행
         if (usbFolder.exists() && usbFolder.isDirectory()) {
+            // 외부 저장소의 MUSIC 폴더 안의 기존 파일들 삭제
+            if (musicFolder.exists() && musicFolder.isDirectory()) {
+                File[] existingFiles = musicFolder.listFiles();
+                if (existingFiles != null) {
+                    for (File existingFile : existingFiles) {
+                        if (existingFile.isFile()) {
+                            boolean deleted = existingFile.delete();
+                            if (deleted) {
+                                Log.d("FILE", "기존 파일 삭제됨: " + existingFile.getName());
+                            } else {
+                                Log.e("FILE", "기존 파일 삭제 실패: " + existingFile.getName());
+                            }
+                        }
+                    }
+                }
+            }
             File[] files = usbFolder.listFiles();
             if (files != null) {
                 for (File file : files) {
