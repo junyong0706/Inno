@@ -60,11 +60,11 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
 
     private Button btn_mode,btn_speed_down,btn_speed_up,btn_vol_up,btn_vol_down,btn_1,btn_2,btn_3,btn_4,btn_5,btn_6,
             btn_num_1,btn_num_2,btn_num_3,btn_num_4,btn_num_5,btn_num_6,btn_num_7,btn_num_8,btn_num_9,btn_num_0,
-            btn_delete;
+            btn_delete,btn_pitch_up,btn_pitch_down;
 
     private BigDecimal speed = new BigDecimal("1.0");
-    private BigDecimal decimal_plus = new BigDecimal("0.1");
-    private BigDecimal decimal_minus = new BigDecimal("-0.1");
+    private BigDecimal decimal_plus = new BigDecimal("0.05");
+    private BigDecimal decimal_minus = new BigDecimal("-0.05");
 
     private boolean play_flag = false;
     private boolean mode_flag = false;
@@ -84,7 +84,7 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_new_bluetooth);
         checkAndRequestPermissions();
-        copyFilesFromUsb();
+        //copyFilesFromUsb();
         initBlinkAnimation();
         init();
     }
@@ -128,6 +128,8 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         btn_vol_down = findViewById(R.id.btn_vol_down);
         btn_speed_up = findViewById(R.id.btn_speed_up);
         btn_speed_down = findViewById(R.id.btn_speed_down);
+        btn_pitch_up = findViewById(R.id.btn_pitch_up);
+        btn_pitch_down = findViewById(R.id.btn_pitch_down);
         btn_1 = findViewById(R.id.btn_1);
         btn_2 = findViewById(R.id.btn_2);
         btn_3 = findViewById(R.id.btn_3);
@@ -169,6 +171,8 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         btn_vol_down.setOnClickListener(this);
         btn_speed_down.setOnClickListener(this);
         btn_speed_up.setOnClickListener(this);
+        btn_pitch_up.setOnClickListener(this);
+        btn_pitch_down.setOnClickListener(this);
         btn_1.setOnClickListener(this);
         btn_2.setOnClickListener(this);
         btn_3.setOnClickListener(this);
@@ -178,6 +182,16 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
 
 
         
+    }
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void adjustPitch(float pitch) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            PlaybackParams playbackParams = mediaPlayer.getPlaybackParams();
+            playbackParams.setPitch(pitch);  // 음정을 80% 낮추기
+            mediaPlayer.setPlaybackParams(playbackParams);
+        } else {
+            Toast.makeText(this, "현재 재생 중인 음악이 없습니다.", Toast.LENGTH_SHORT).show();
+        }
     }
     private void adjustVolume(boolean increase) {
         int maxVolume = 100;  // 최대 볼륨 값
@@ -242,7 +256,7 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
                         index_mp3++;
                     }
                     // 다음 파일이 있으면 재생, 없으면 완료 메시지
-                    if (mp3Files.size() > 1 && play_flag){
+                    if (mp3Files.size() > 1 && !play_flag){
                         playMp3Files(mp3Files); // 다음 파일 재생 및 수정버튼 눌ㄹ렀을때 종료
                     }else {
                         //종료 될때 1.0으로 초기화
@@ -327,7 +341,7 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         Log.d("FileSearch", "prefix = " +prefix);
         //리스트 가져올때마다 비워주기
         // MUSIC 디렉토리 경로 가져오기
-        File musicFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC + "/CCM");
+        File musicFolder = new File(getExUSBPath(this) + "/CCM");
 
         // 결과를 담을 리스트
         ArrayList<File> matchingFiles = new ArrayList<>();
@@ -453,7 +467,7 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         if (requestCode == 200) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // 권한이 승인되었으면 파일 복사 실행
-                copyFilesFromUsb();
+                //copyFilesFromUsb();
             } else {
                 Toast.makeText(this, "저장소 권한이 필요합니다.", Toast.LENGTH_SHORT).show();
             }
@@ -683,33 +697,73 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
             }
         } else if (id == R.id.btn_1){
             if (mode_flag){
-                play_flag = false;
+                if (play_flag){
+                    btn_1.setBackgroundResource(R.drawable.btn_pause);
+                    play_flag = false;
+                }else {
+                    btn_1.setBackgroundResource(R.drawable.btn_play);
+                    play_flag = true;
+                }
             }
         }else if (id == R.id.btn_2){
             if (mode_flag){
-                play_flag = false;
+                if (play_flag){
+                    btn_2.setBackgroundResource(R.drawable.btn_pause);
+                    play_flag = false;
+                }else {
+                    btn_2.setBackgroundResource(R.drawable.btn_play);
+                    play_flag = true;
+                }
             }
         }else if (id == R.id.btn_3){
             if (mode_flag){
-                play_flag = false;
+                if (play_flag){
+                    btn_3.setBackgroundResource(R.drawable.btn_pause);
+                    play_flag = false;
+                }else {
+                    btn_3.setBackgroundResource(R.drawable.btn_play);
+                    play_flag = true;
+                }
             }
         }else if (id == R.id.btn_4){
             if (mode_flag){
-                play_flag = false;
+                if (play_flag){
+                    btn_4.setBackgroundResource(R.drawable.btn_pause);
+                    play_flag = false;
+                }else {
+                    btn_4.setBackgroundResource(R.drawable.btn_play);
+                    play_flag = true;
+                }
             }
         }else if (id == R.id.btn_5){
             if (mode_flag){
-                play_flag = false;
+                if (play_flag){
+                    btn_5.setBackgroundResource(R.drawable.btn_pause);
+                    play_flag = false;
+                }else {
+                    btn_5.setBackgroundResource(R.drawable.btn_play);
+                    play_flag = true;
+                }
             }
         }else if (id == R.id.btn_6){
             if (mode_flag){
-                play_flag = false;
+                if (play_flag){
+                    btn_6.setBackgroundResource(R.drawable.btn_pause);
+                    play_flag = false;
+                }else {
+                    btn_6.setBackgroundResource(R.drawable.btn_play);
+                    play_flag = true;
+                }
             }
         }else if (id == R.id.btn_vol_up){
             adjustVolume(true);
         }else if (id == R.id.btn_vol_down){
             adjustVolume(false);
-        }else if (id == R.id.btn_speed_up){
+        } else if (id == btn_pitch_up) {
+            adjustPitch(1.0f);
+        } else if (id == btn_pitch_down) {
+            adjustPitch(0.8f);
+        } else if (id == R.id.btn_speed_up){
             if (mediaPlayer != null) {
 
                 if (txt_speed.getText().toString().equals("x2.0")){
