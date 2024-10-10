@@ -340,10 +340,10 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
     }
 
     public ArrayList<File> getFilesStartingWith(String prefix) {
-        Log.d("FileSearch", "prefix = " +prefix);
         //리스트 가져올때마다 비워주기
         // MUSIC 디렉토리 경로 가져오기
         File musicFolder = new File(getExUSBPath(this) + "/CCM");
+        Log.d("FileSearch", "musicFolder path = " +musicFolder.getPath());
 
         // 결과를 담을 리스트
         ArrayList<File> matchingFiles = new ArrayList<>();
