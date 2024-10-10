@@ -263,6 +263,8 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
                         speed = new BigDecimal("1.0");
                         txt_speed.setText("x" + speed);
                         index_mp3 = 0;
+                        play_flag = false;
+                        BtnReset();
                     }
                     if (mp3Files.size() == 1){
                         Log.d("Mp3Player", "모든 MP3 파일을 재생했습니다.");
@@ -460,20 +462,14 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
         }
         return null;
     }
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == 200) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 권한이 승인되었으면 파일 복사 실행
-                //copyFilesFromUsb();
-            } else {
-                Toast.makeText(this, "저장소 권한이 필요합니다.", Toast.LENGTH_SHORT).show();
-            }
-        }
+    private void BtnReset(){
+        btn_1.setBackgroundResource(R.drawable.btn_play);
+        btn_2.setBackgroundResource(R.drawable.btn_play);
+        btn_3.setBackgroundResource(R.drawable.btn_play);
+        btn_4.setBackgroundResource(R.drawable.btn_play);
+        btn_5.setBackgroundResource(R.drawable.btn_play);
+        btn_6.setBackgroundResource(R.drawable.btn_play);
     }
-
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onClick(View v) {
@@ -759,9 +755,9 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
             adjustVolume(true);
         }else if (id == R.id.btn_vol_down){
             adjustVolume(false);
-        } else if (id == btn_pitch_up) {
+        } else if (id == R.id.btn_pitch_up) {
             adjustPitch(1.0f);
-        } else if (id == btn_pitch_down) {
+        } else if (id == R.id.btn_pitch_down) {
             adjustPitch(0.8f);
         } else if (id == R.id.btn_speed_up){
             if (mediaPlayer != null) {
@@ -792,6 +788,18 @@ public class NewBluetoothActivity extends AppCompatActivity implements View.OnCl
                 }
             }
         }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
+        if (requestCode == 200) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 권한이 승인되었으면 파일 복사 실행
+                //copyFilesFromUsb();
+            } else {
+                Toast.makeText(this, "저장소 권한이 필요합니다.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }
